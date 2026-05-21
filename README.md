@@ -1,95 +1,106 @@
 # Pulse — Frontend
 
-> Monitoring platform frontend built with Next.js 16. Provides a real-time dashboard, service detail pages, and a public status page.
+![Next.js](https://img.shields.io/badge/Next.js-16-black) ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue) ![Tailwind](https://img.shields.io/badge/Tailwind-CSS-38bdf8) ![Vercel](https://img.shields.io/badge/Vercel-deployed-black)
 
-## Tech Stack
+**Web:** https://pulse-frontend-chi-three.vercel.app  
+**Backend:** https://github.com/Pau-Balsach/pulse-backend
 
-- **Next.js 16** (App Router)
-- **TypeScript**
-- **Tailwind CSS**
-- **Recharts** for latency charts
-- **STOMP over SockJS** for real-time WebSocket updates
-- **Docker** ready
+---
 
-## Features
+## ¿Qué es Pulse?
 
-- JWT-based authentication
-- Real-time dashboard with WebSocket updates
-- Service detail page with latency chart, check heatmap, and incident history
-- Public status page (no login required) — shareable with anyone
-- Auto-refresh every 60 seconds on the status page
+Pulse es una plataforma de observabilidad SaaS similar a UptimeRobot o BetterStack. Permite monitorizar servicios web en tiempo real, detectar caídas automáticamente, revisar el historial de incidencias y consultar el estado de todos los servicios desde una página pública sin necesidad de autenticación.
 
-## Pages
+Este repositorio contiene el **frontend**, encargado de:
 
-| Route | Auth | Description |
-|-------|------|-------------|
-| `/login` | No | Login page |
-| `/dashboard` | Yes | Main dashboard with all services |
-| `/dashboard/[serviceId]` | Yes | Service detail with charts |
-| `/status/[projectId]` | No | Public status page |
+- Autenticar al usuario y gestionar la sesión con JWT
+- Mostrar un dashboard en tiempo real con el estado de todos los servicios
+- Actualizar automáticamente los datos mediante WebSockets sin recargar la página
+- Mostrar páginas de detalle por servicio con gráfica de latencia, heatmap de checks e historial de incidencias
+- Exponer una página de estado pública y compartible por proyecto
 
-## Getting Started
+---
 
-### Prerequisites
+## Tecnologías
 
-- Node.js 20+
-- Pulse backend running on port 8080
+| Tecnología | Uso |
+|---|---|
+| Next.js 16 (App Router) | Framework frontend |
+| TypeScript | Tipado estático |
+| Tailwind CSS | Estilos |
+| Recharts | Gráfica de latencia |
+| STOMP over SockJS | WebSockets en tiempo real |
+| Axios | Cliente HTTP con interceptor JWT |
+| Docker | Containerización |
 
-### Configuration
+---
 
-Create a `.env.local` file in the root:
+## Páginas
+
+| Ruta | Auth | Descripción |
+|---|---|---|
+| `/login` | No | Inicio de sesión |
+| `/dashboard` | Sí | Dashboard principal con todos los servicios |
+| `/dashboard/[serviceId]` | Sí | Detalle del servicio: gráfica, heatmap e incidencias |
+| `/status/[projectId]` | No | Página de estado pública y compartible |
+
+---
+
+## Estructura del código
+
+```
+app/
+├── dashboard/
+│   ├── page.tsx               # Dashboard principal con WebSocket
+│   └── [serviceId]/
+│       └── page.tsx           # Detalle del servicio
+├── login/
+│   └── page.tsx               # Login con JWT
+├── status/
+│   └── [projectId]/
+│       └── page.tsx           # Página de estado pública
+└── lib/
+    └── api.ts                 # Instancia Axios con interceptor JWT
+```
+
+---
+
+## Configuración
+
+Copia el archivo de ejemplo y rellena los valores:
+
+```bash
+cp .env.example .env.local
+```
+
+### .env.example
 
 ```env
+# URL del backend (sin barra final)
 NEXT_PUBLIC_API_URL=http://localhost:8080
 ```
 
-### Run locally
+---
+
+## Ejecución local
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open `http://localhost:3000`.
+Abre http://localhost:3000.
 
-### Run with Docker
+### Con Docker (junto al backend)
 
-From the backend repository root (where `docker-compose.yml` lives):
+Desde la raíz del repositorio del backend (donde está el `docker-compose.yml`):
 
 ```bash
 docker-compose up --build
 ```
 
-This starts both backend and frontend together.
-
-## Project Structure
-
-```
-app/
-├── dashboard/
-│   ├── page.tsx          # Main dashboard
-│   └── [serviceId]/
-│       └── page.tsx      # Service detail
-├── login/
-│   └── page.tsx          # Login
-├── status/
-│   └── [projectId]/
-│       └── page.tsx      # Public status page
-└── lib/
-    └── api.ts            # Axios instance with JWT interceptor
-```
-
-## Screenshots
-
-### Dashboard
-Real-time monitoring of all services with uptime, latency, and incident count.
-
-### Service Detail
-Latency chart over time, check heatmap, and full incident history.
-
-### Public Status Page
-Shareable status page showing all services with uptime and response time — no login required.
+---
 
 ## Backend
 
-The backend repository is available at [pulse-backend](https://github.com/Pau-Balsach/pulse-backend).
+El repositorio del backend está disponible en [pulse-backend](https://github.com/Pau-Balsach/pulse-backend).
