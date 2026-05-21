@@ -38,7 +38,7 @@ export default function StatusPage() {
 
   const fetchStatus = async () => {
     try {
-      const res = await fetch(`http://localhost:8080/public/status/${projectId}`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"}/public/status/${projectId}`);
       if (!res.ok) throw new Error();
       const json = await res.json();
       setData(json);

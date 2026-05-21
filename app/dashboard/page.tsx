@@ -37,7 +37,7 @@ export default function DashboardPage() {
   }, []);
   useEffect(() => {
     const client = new Client({
-      webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
+      webSocketFactory: () => new SockJS((process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080') + '/ws'),
       reconnectDelay: 5000,
       onConnect: () => {
         client.subscribe('/topic/checks', (message) => {
