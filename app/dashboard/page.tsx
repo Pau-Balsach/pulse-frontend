@@ -70,14 +70,16 @@ export default function DashboardPage() {
       const pid = projects[0].id;
       setProjectId(pid);
 
-      const servicesRes = await api.get(`/api/projects/${pid}/services`);
-      const servicesData = servicesRes.data;
-      setServices(servicesData);
+      const [servicesRes, metricsRes] = await Promise.all([
+        api.get(`/api/projects/${pid}/services`),
+        api.get(`/api/projects/${pid}/metrics`),
+      ]);
+
+      setServices(servicesRes.data);
 
       const metricsData: Record<string, Metrics> = {};
-      for (const service of servicesData) {
-        const metricsRes = await api.get(`/api/services/${service.id}/metrics`);
-        metricsData[service.id] = metricsRes.data;
+      for (const m of metricsRes.data) {
+        metricsData[m.serviceId] = m;
       }
       setMetrics(metricsData);
     } catch (error) {
