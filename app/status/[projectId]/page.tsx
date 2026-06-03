@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 
 interface ServiceStatus {
+  id: string;
   name: string;
   url: string;
   status: 'OPERATIONAL' | 'DEGRADED' | 'OUTAGE';
@@ -15,6 +16,12 @@ interface StatusResponse {
   projectName: string;
   overallStatus: 'OPERATIONAL' | 'DEGRADED' | 'OUTAGE';
   services: ServiceStatus[];
+}
+
+interface Metrics {
+  serviceId: string;
+  uptimePercentage: number;
+  avgResponseTimeMs: number;
 }
 
 const statusConfig = {
@@ -29,6 +36,8 @@ const overallBanner = {
   OUTAGE:      { bg: 'bg-red-500/10',     border: 'border-red-500/30',     text: 'text-red-400',     icon: '✕', message: 'Service outage detected' },
 };
 
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+
 export default function StatusPage() {
   const { projectId } = useParams();
   const [data, setData] = useState<StatusResponse | null>(null);
@@ -38,10 +47,40 @@ export default function StatusPage() {
 
   const fetchStatus = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"}/public/status/${projectId}`);
-      if (!res.ok) throw new Error();
-      const json = await res.json();
-      setData(json);
+      // Fetch public status (for name, overallStatus, service list)
+      const statusRes = await fetch(`${BASE_URL}/public/status/${projectId}`);
+      if (!statusRes.ok) throw new Error();
+      const statusJson: StatusResponse = await statusRes.json();
+
+      // Fetch real metrics (same endpoint as dashboard) — no auth needed for public status page,
+      // but /api/projects metrics requires auth. We use the token if available.
+      const token = localStorage.getItem("token");
+      const metricsRes = await fetch(`${BASE_URL}/api/projects/${projectId}/metrics`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+
+      if (metricsRes.ok) {
+        const metricsJson: Metrics[] = await metricsRes.json();
+        const metricsMap: Record<string, Metrics> = {};
+        for (const m of metricsJson) {
+          metricsMap[m.serviceId] = m;
+        }
+
+        // Overwrite uptimePercentage and avgResponseTimeMs with dashboard metrics
+        statusJson.services = statusJson.services.map((service) => {
+          const m = metricsMap[service.id];
+          if (m) {
+            return {
+              ...service,
+              uptimePercentage: m.uptimePercentage,
+              avgResponseTimeMs: m.avgResponseTimeMs,
+            };
+          }
+          return service;
+        });
+      }
+
+      setData(statusJson);
       setLastUpdated(new Date());
       setError(false);
     } catch {
@@ -105,7 +144,7 @@ export default function StatusPage() {
                 </div>
                 <div className="flex items-center gap-4 ml-4 shrink-0">
                   <div className="text-right hidden sm:block">
-                    <p className="text-white/60 text-xs">{service.uptimePercentage.toFixed(1)}% uptime</p>
+                    <p className="text-white/60 text-xs">{service.uptimePercentage.toFixed(2)}% uptime</p>
                     <p className="text-white/30 text-xs">{service.avgResponseTimeMs.toFixed(0)} ms avg</p>
                   </div>
                   <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/5 border ${cfg.border}`}>
