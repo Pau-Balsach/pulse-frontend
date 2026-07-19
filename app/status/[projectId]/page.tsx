@@ -69,8 +69,7 @@ const overallBanner = {
   },
 };
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const BASE_URL = 'https://pulse-backend-kurk.onrender.com';
 
 export default function StatusPage() {
   const { projectId } = useParams();
@@ -87,7 +86,8 @@ export default function StatusPage() {
     try {
       setError(false);
       setLoadedServices(0);
-
+      console.log("BASE_URL =", BASE_URL);
+      console.log("projectId =", projectId);
       // 1. Cargar información pública básica
       const statusRes = await fetch(
         `${BASE_URL}/public/status/${projectId}`,
@@ -97,7 +97,7 @@ export default function StatusPage() {
       if (!statusRes.ok) throw new Error('Failed to load status');
 
       const statusJson: StatusResponse = await statusRes.json();
-
+      console.log(statusJson.services);
       setData(statusJson);
       setTotalServices(statusJson.services.length);
       setLoading(false);
@@ -117,11 +117,11 @@ export default function StatusPage() {
               if (metricsRes.ok) {
                 const metrics: Metrics =
                   await metricsRes.json();
-
+                console.log("Metrics received", metrics);
                 // Actualizar solo el servicio correspondiente
                 setData((prev) => {
                   if (!prev) return prev;
-
+                  console.log("Updating service", metrics.serviceId);
                   return {
                     ...prev,
                     services: prev.services.map((s) =>
