@@ -18,7 +18,7 @@ interface StatusResponse {
   services: ServiceStatus[];
 }
 
-interface ServiceMetricsResponse {
+interface Metrics {
   serviceId: string;
   uptimePercentage: number;
   avgResponseTimeMs: number;
@@ -77,12 +77,10 @@ export default function StatusPage() {
 
   const [data, setData] = useState<StatusResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-
+  const [loadingMetrics, setLoadingMetrics] = useState(false);
   const [loadedServices, setLoadedServices] = useState(0);
   const [totalServices, setTotalServices] = useState(0);
-  const [loadingMetrics, setLoadingMetrics] = useState(false);
-
+  const [error, setError] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   const loadStatusAndMetrics = async () => {
@@ -117,7 +115,7 @@ export default function StatusPage() {
               );
 
               if (metricsRes.ok) {
-                const metrics: ServiceMetricsResponse =
+                const metrics: Metrics =
                   await metricsRes.json();
 
                 // Actualizar solo el servicio correspondiente
@@ -222,15 +220,18 @@ export default function StatusPage() {
         {loadingMetrics && (
           <div className='mb-8 rounded-xl border border-white/8 bg-white/[0.03] p-4'>
             <div className='flex items-center mb-2'>
-              <Icon name='loader-2' className='w-4 h-4 mr-2 animate-spin text-emerald-400' />
-              <span className='text-sm font-medium'>
-                Loading service metrics...
-              </span>
-              <Spacer />
-              <span className='text-sm text-white/50'>
-                {loadedServices}/{totalServices}
-              </span>
-            </div>
+            <div className='w-4 h-4 mr-2 border-2 border-white/20 border-t-emerald-400 rounded-full animate-spin' />
+
+            <span className='text-sm font-medium'>
+              Loading service metrics ({loadedServices}/{totalServices})
+            </span>
+
+            <div className='flex-1' />
+
+            <span className='text-sm text-white/50'>
+              {progress}%
+            </span>
+          </div>
 
             <div className='w-full h-2 bg-white/10 rounded-full overflow-hidden'>
               <div
@@ -278,10 +279,10 @@ export default function StatusPage() {
                         </p>
                       </>
                     ) : (
-                      <div className='flex items-center justify-end gap-2 text-white/40 text-xs'>
-                        <Icon name='loader-2' className='w-3 h-3 animate-spin' />
-                        <span>Loading...</span>
-                      </div>
+                    <div className='flex items-center justify-end gap-2 text-white/40 text-xs'>
+                      <div className='w-3 h-3 border-2 border-white/20 border-t-white rounded-full animate-spin' />
+                      <span>Loading...</span>
+                    </div>
                     )}
                   </div>
 
